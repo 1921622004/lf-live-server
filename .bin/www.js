@@ -19,6 +19,6 @@ program.option('-p --port <n>', '')
     })
 
 
-const server = new Server({ ...option, ...commander });
+const server = new Server({ ...option, ...program });
 
 server.start()
