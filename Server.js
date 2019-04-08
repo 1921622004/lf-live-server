@@ -56,10 +56,10 @@ class Server {
         const lastModified = statObj.cTime + '';
         const eTag = statObj.size + '';
         const expireTime = new Date(Date.now() + 180 * 1000);
-        if (lastModified === ifModifiedSince) {
+        if(eTag === ifNoneMatch) {
             return true
         };
-        if(eTag === ifNoneMatch) {
+        if (lastModified === ifModifiedSince) {
             return true
         };
         res.setHeader('Cache-Control', 'max-age=180');
