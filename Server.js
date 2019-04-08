@@ -5,6 +5,7 @@ const mime = require('mime');
 const url = require('url');
 const fs = require('mz/fs');
 const ejs = require('ejs');
+const DIR = 'dir';
 
 const template = fs.readFileSync('./template.html', 'utf-8');
 const favIconPath = 'file:' + path.join(__dirname, 'favicon.ico');
@@ -25,12 +26,29 @@ class Server {
             const statObj = await fs.stat(currentPath);
             if (statObj.isDirectory()) {
                 const files = await fs.readdir(currentPath);
-                const fileList = files.map(file => {
-                    return {
-                        name: file,
-                        link: path.join(pathname, file)
-                    }
+                const promiseAry = files.map(file => {
+                    const absPath = path.join(currentPath, file);
+                    return new Promise((resolve, reject) => {
+                        fs.stat(absPath, (err, stats) => {
+                            if (stats.isDirectory()) {
+                                resolve({
+                                    type: DIR,
+                                    name: file,
+                                    link: path.join(pathname, file)
+                                })
+                            } else {
+                                resolve({
+                                    type: mime.getType(absPath),
+                                    name: file,
+                                    link: path.join(pathname, file)
+                                })
+                            }
+                        })
+                    });
                 });
+                const fileList = await Promise.all(promiseAry);
+                console.log(fileList);
+
                 let renderResult = ejs.render(this.template, { fileList, favIconPath });
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'text/html;charset=utf-8');
@@ -56,7 +74,7 @@ class Server {
         const lastModified = statObj.cTime + '';
         const eTag = statObj.size + '';
         const expireTime = new Date(Date.now() + 180 * 1000);
-        if(eTag === ifNoneMatch) {
+        if (eTag === ifNoneMatch) {
             return true
         };
         if (lastModified === ifModifiedSince) {
