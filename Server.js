@@ -7,8 +7,15 @@ const fs = require('mz/fs');
 const ejs = require('ejs');
 const DIR = 'dir';
 
+const iconPath = {
+  dir: path.join(__dirname,'./icons/dir.png'),
+  favIcon: path.join(__dirname, './icons/favicon.ico')
+}
+
 const template = fs.readFileSync(path.join(__dirname,'./template.html'), 'utf-8');
-const favIconPath = 'file:' + path.join(__dirname, 'favicon.ico');
+const favIconPath = 'file:' + iconPath.favIcon;
+console.log(favIconPath);
+
 
 class Server {
   constructor(option = {}) {
