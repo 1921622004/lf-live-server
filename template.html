@@ -36,11 +36,11 @@
     <script>
         var socket = io('http://localhost:4444');
         socket.on('connect', function () {
-            socket.send('hello');
+            console.log('connected');
         });
         socket.on('message',function(msg){
             if(msg === 'refresh') {
-                setTimeout(() => {
+                setTimeout(function() {
                     window.location.reload();
                 }, 1000);
             }

@@ -60,7 +60,6 @@ class Server {
         res.setHeader('Content-Type', 'text/html;charset=utf-8');
         res.end(renderResult);
         fs.watch(currentPath,'utf8',(type,filename) => {
-          console.log(type);
           if(type === 'rename'){
             this.io.send('refresh');
           };
@@ -113,7 +112,6 @@ class Server {
     let server = http.createServer(this.handleRequest);
     this.io = ws(server);
     this.io.on('connection',(socket) => {
-      console.log('客户端已连接');
       socket.on('message',(msg) => {
         console.log(msg);
       })
