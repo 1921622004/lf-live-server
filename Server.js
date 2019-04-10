@@ -6,6 +6,7 @@ const url = require('url');
 const fs = require('mz/fs');
 const ejs = require('ejs');
 const ws = require('socket.io');
+const exec = require('child_process').exec;
 const DIR = 'dir';
 
 const iconPath = {
@@ -119,6 +120,16 @@ class Server {
     server.listen(this.port, () => {
       console.log(chalk.green(`live server start at ${this.port}`))
     });
+    switch(process.platform){
+      case 'darwin':
+        exec(`open http://localhost:${this.port}`);
+        break;
+      case 'win32':
+        exec(`start http://localhost:${this.port}`);
+        break;
+      default: 
+        exec(`xdg-open http://localhost:${this.port}`)
+    }
   }
 }
 
