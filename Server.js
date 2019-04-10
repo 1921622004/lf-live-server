@@ -5,6 +5,7 @@ const mime = require('mime');
 const url = require('url');
 const fs = require('mz/fs');
 const ejs = require('ejs');
+const ws = require('socket.io');
 const DIR = 'dir';
 
 const iconPath = {
@@ -58,6 +59,13 @@ class Server {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html;charset=utf-8');
         res.end(renderResult);
+        fs.watch(currentPath,'utf8',(type,filename) => {
+          console.log(type);
+          if(type === 'rename'){
+            this.io.send('refresh');
+          };
+        })
+        this.io.send('refresh')
       } else {
         this.sendFile(req, res, currentPath, statObj);
       }
@@ -102,9 +110,17 @@ class Server {
   }
 
   start() {
-    http.createServer(this.handleRequest).listen(this.port, () => {
+    let server = http.createServer(this.handleRequest);
+    this.io = ws(server);
+    this.io.on('connection',(socket) => {
+      console.log('客户端已连接');
+      socket.on('message',(msg) => {
+        console.log(msg);
+      })
+    });
+    server.listen(this.port, () => {
       console.log(chalk.green(`live server start at ${this.port}`))
-    })
+    });
   }
 }
 
