@@ -1,7 +1,7 @@
 {
   "name": "awesome-live-server",
   "version": "0.0.1",
-  "description": "",
+  "description": "a simple static server",
   "main": "index.js",
   "bin": {
     "awesome-live-server": ".bin/www.js",
