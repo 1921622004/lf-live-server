@@ -8,3 +8,9 @@ npm install awesome-live-server -g
 awesome-live-server
 al-server
 ```
+
+
+### todo
+- 判断接口是否被占用
+- gzip
+- ...
