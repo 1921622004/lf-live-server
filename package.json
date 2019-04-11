@@ -1,26 +1,23 @@
 {
-  "name": "static-server",
+  "name": "awesome-live-server",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "bin": {
-    "live-server": ".bin/www.js"
+    "awesome-live-server": ".bin/www.js",
+    "al-server": ".bin/www.js"
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
+  "keywords": [
+    "live-server"
+  ],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
+  "dependencies": {
     "chalk": "^2.4.2",
     "commander": "^2.20.0",
     "ejs": "^2.6.1",
     "mime": "^2.4.1",
-    "mz": "^2.7.0",
-    "ws": "^6.2.1"
-  },
-  "dependencies": {
+    "ws": "^6.2.1",
     "socket.io": "^2.2.0"
   }
 }

@@ -3,21 +3,13 @@ const path = require('path');
 const chalk = require('chalk');
 const mime = require('mime');
 const url = require('url');
-const fs = require('mz/fs');
+const fs = require('fs');
 const ejs = require('ejs');
 const ws = require('socket.io');
 const exec = require('child_process').exec;
-const DIR = 'dir';
-
-const iconPath = {
-  dir: path.join(__dirname,'./icons/dir.png'),
-  favIcon: path.join(__dirname, './icons/favicon.ico')
-}
+const { stat, readdir } = require('./promisifiedFn');
 
 const template = fs.readFileSync(path.join(__dirname,'./template.html'), 'utf-8');
-const favIconPath = 'file:' + iconPath.favIcon;
-console.log(favIconPath);
-
 
 class Server {
   constructor(option = {}) {
@@ -32,16 +24,16 @@ class Server {
     const { pathname } = url.parse(req.url);
     const currentPath = path.join(this.dir, pathname);
     try {
-      const statObj = await fs.stat(currentPath);
+      const statObj = await stat(currentPath);
       if (statObj.isDirectory()) {
-        const files = await fs.readdir(currentPath);
+        const files = await readdir(currentPath);
         const promiseAry = files.map(file => {
           const absPath = path.join(currentPath, file);
           return new Promise((resolve, reject) => {
             fs.stat(absPath, (err, stats) => {
               if (stats.isDirectory()) {
                 resolve({
-                  type: DIR,
+                  type: 'dir',
                   name: file,
                   link: path.join(pathname, file)
                 })
@@ -56,7 +48,7 @@ class Server {
           });
         });
         const fileList = await Promise.all(promiseAry);
-        let renderResult = ejs.render(this.template, { fileList, favIconPath });
+        let renderResult = ejs.render(this.template, { fileList });
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html;charset=utf-8');
         res.end(renderResult);
@@ -70,6 +62,8 @@ class Server {
         this.sendFile(req, res, currentPath, statObj);
       }
     } catch (err) {
+      console.log(err);
+      
       this.sendError(req, res, currentPath);
     }
   }
