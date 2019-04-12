@@ -12,6 +12,7 @@ const option = {
 
 program.option('-p --port <n>', '设置端口号 默认4444')
   .option('-d --dir <n>', '静态服务目录，默认当前目录')
+  .option('-g --gzip','开启gzip压缩，默认不开启')
   .version(package.version)
   .parse(process.argv)
 

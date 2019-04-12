@@ -6,21 +6,23 @@ const url = require('url');
 const fs = require('fs');
 const ejs = require('ejs');
 const ws = require('socket.io');
+const zlib = require('zlib');
 const exec = require('child_process').exec;
 const { stat, readdir } = require('./promisifiedFn');
 
-const template = fs.readFileSync(path.join(__dirname,'./template.html'), 'utf-8');
+const template = fs.readFileSync(path.join(__dirname, './template.html'), 'utf-8');
 
 class Server {
   constructor(option = {}) {
     this.dir = option.dir;
     this.port = option.port;
+    this.gzip = option.gzip;
     this.template = template;
     this.handleRequest = this.handleRequest.bind(this);
   }
 
   async handleRequest(req, res) {
-    const { pathname } = url.parse(req.url);
+    const { pathname } = url.parse(decodeURI(req.url));
     const currentPath = path.join(this.dir, pathname);
     try {
       const statObj = await stat(currentPath);
@@ -51,20 +53,22 @@ class Server {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html;charset=utf-8');
         res.end(renderResult);
-        fs.watch(currentPath,'utf8',(type,filename) => {
-          if(type === 'rename'){
-            this.io.send('refresh');
-          };
-        })
-        this.io.send('refresh')
+        this.startWatch(currentPath);
       } else {
         this.sendFile(req, res, currentPath, statObj);
       }
     } catch (err) {
       console.log(err);
-      
       this.sendError(req, res, currentPath);
     }
+  }
+
+  startWatch(currentPath) {
+    fs.watch(currentPath, 'utf8', (type) => {
+      if (type === 'rename') {
+        this.io.send('refresh');
+      };
+    })
   }
 
   sendError(req, res, currentPath) {
@@ -98,29 +102,36 @@ class Server {
     } else {
       res.statusCode = 200;
       res.setHeader('Content-Type', `${mime.getType(currentPath)};charset=utf-8`);
-      fs.createReadStream(currentPath).pipe(res);
+      if(this.gzip){
+        const gs = zlib.createGzip();
+        const rs = fs.createReadStream(currentPath);
+        res.setHeader('Content-Coding','gzip');
+        rs.pipe(gs).pipe(res);
+      } else {
+        fs.createReadStream(currentPath).pipe(res);
+      }
     }
   }
 
   start() {
     let server = http.createServer(this.handleRequest);
     this.io = ws(server);
-    this.io.on('connection',(socket) => {
-      socket.on('message',(msg) => {
+    this.io.on('connection', (socket) => {
+      socket.on('message', (msg) => {
         console.log(msg);
       })
     });
     server.listen(this.port, () => {
       console.log(chalk.green(`live server start at ${this.port}`))
     });
-    switch(process.platform){
+    switch (process.platform) {
       case 'darwin':
         exec(`open http://localhost:${this.port}`);
         break;
       case 'win32':
         exec(`start http://localhost:${this.port}`);
         break;
-      default: 
+      default:
         exec(`xdg-open http://localhost:${this.port}`)
     }
   }
