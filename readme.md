@@ -8,6 +8,12 @@ npm install awesome-live-server -g
 awesome-live-server
 al-server
 ```
+## 选项
+-p --port 选择端口
+
+-g --gzip 开启gzip压缩，默认不开启
+
+-d --dir  选择目录  默认当前目录
 
 
 ### todo
